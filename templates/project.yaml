@@ -1,0 +1,95 @@
+#
+# obi configuration for {{project_name}}
+#
+
+# The project name
+name: '{{project_name}}'
+
+# Build task
+# ----------
+# Comma-separated list of command line arguments passed to cmake
+cmake-args: ['-DCMAKE_BUILD_TYPE=RelWithDebInfo',
+             '-DCMAKE_EXPORT_COMPILE_COMMANDS=1']
+
+# Comma-separated list of arguments passed to cmake --build
+# These are sensitive to the build system generator
+# specified in the cmake-args step
+build-args: ['-j8', '-l8']
+
+# The directory to perform the out-of-source cmake build
+build-dir: "build"
+
+# Override the default obi build task
+# build-cmd: ""
+
+# Clean task
+# ----------
+# Override the default obi clean task
+# clean-cmd: ""
+
+# Stop task
+# ----------
+# Comma-separated list of command-line commands to run when stopping {{project_name}}
+on-stop-cmds: []
+
+# Override the default obi stop task
+# stop-cmd: ""
+
+# Rsync task
+# -----------
+# Comma-separated list of files to ignore when rsyncing to remote machines
+rsync-excludes: [".git", "build"]
+
+# Launch task
+# -----------
+# Comma-separated list of arguments to pass to {{project_name}} when it is run
+launch-args: []
+
+# Path to the project binary from the top-level project directory
+# The target location is determined by your cmake file
+target: "build/{{project_name}}"
+
+# Comma-separated list of command-line commands to run before launching {{project_name}}
+pre-launch-cmds: []
+
+# Comma-separated list of command-line commands to run after launching {{project_name}}
+post-launch-cmds: []
+
+# Override the default command to launch the application in the obi go task
+# launch-cmd: ""
+
+# Debuggers to use in obi go --debug=<debugger>
+debuggers:
+  gdb: "gdb -ex run --args"
+  lldb: "lldb --"
+  strace: "sudo strace"
+  apitrace: "apitrace trace"
+
+# 'rooms' is a map where the keys are room names. Each room has its own
+# settings which are used when you do `obi go <room-name>`
+# You can define any number of rooms here.
+# Any key, value specified at the top-level can be overriden on a per-room basis
+rooms:
+  # This setting governs what happens when the application runs on
+  # your local machine.
+  localhost:
+    env-vars: {}
+    launch-args: [
+      'three-screen.protein',
+      'three-feld.protein'
+    ]
+
+  my-room:
+    env-vars: {
+      DISPLAY: ':0',
+      OB_SHARE_PATH: 'share/{{project_name}}:$OB_SHARE_PATH'
+    }
+    launch-args: [
+      '--wands-pool=tcp://10.10.10.10/wands',
+      '--room=/etc/oblong/room.protein',
+      '/etc/oblong/room-screen.protein',
+      '/etc/oblong/room-feld.protein'
+    ]
+    user: oblong
+    hosts: [10.10.10.10, 10.10.10.11, 10.10.10.12, 10.10.10.13, 10.10.10.14]
+    build-args: ['-j32', '-l32']
