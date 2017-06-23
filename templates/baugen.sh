@@ -214,7 +214,7 @@ fi
 
 if ! test -d .git
 then
-    echo "bau prefers to build projects checked out from git.  Try 'git init; git add *; git commit; git tag -a -m dev-0.0 dev-0.0' first."
+    echo "bau prefers to build projects checked out from git.  Try 'obi clean; git init; git add -A; git commit; git tag -a -m dev-0.0 dev-0.0' first."
     exit 1
 fi
 
