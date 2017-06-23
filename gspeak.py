@@ -26,6 +26,7 @@ def obi_new(**kwargs):
         [os.path.join("debian", "compat"), "compat"],
         [os.path.join("debian", "control"), "control"],
         [os.path.join("debian", "rules"), "rules"],
+        [os.path.join("debian", ".gitignore"), "debian.gitignore"],
         [os.path.join("src", "main.cpp"), "main.cpp"],
         [".gitignore", "gitignore"],
         ["project.yaml", "project.yaml"],
@@ -49,4 +50,5 @@ def obi_new(**kwargs):
         except jinja2.TemplateNotFound:
             print("Warning: Could not find template {0}".format(template_name))
     os.chmod(project_path + '/baugen.sh', 0755)
+    os.chmod(project_path + '/debian/rules', 0755)
     return 0
