@@ -27,6 +27,7 @@ def obi_new(**kwargs):
         [os.path.join("debian", "control"), "control"],
         [os.path.join("debian", "rules"), "rules"],
         [os.path.join("debian", ".gitignore"), "debian.gitignore"],
+        [os.path.join("debian", 'oblong-' + kwargs['project_name'] + '-gs' + kwargs['g_speak_version'] + 'x1.install'), "install"],
         [os.path.join("src", "main.cpp"), "main.cpp"],
         [".gitignore", "gitignore"],
         ["project.yaml", "project.yaml"],
