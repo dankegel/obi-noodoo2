@@ -26,13 +26,13 @@ def obi_new(**kwargs):
         [os.path.join("debian", "compat"), "compat"],
         [os.path.join("debian", "control"), "control"],
         [os.path.join("debian", "rules"), "rules"],
-        ["set-gspeak.sh", "set-gspeak.sh"],
-        ["g-speak.dat", "g-speak.dat"],
         [os.path.join("src", "main.cpp"), "main.cpp"],
         [".gitignore", "gitignore"],
         ["project.yaml", "project.yaml"],
         ["three-screen.protein", "three-screen.protein"],
         ["three-feld.protein", "three-feld.protein"],
+        ["oblong.cmake", "oblong.cmake"],
+        ["baugen.sh", "baugen.sh"],
         ["CMakeLists.txt", "CMakeLists.txt"]])
     env = jinja2.Environment(loader=jinja2.PackageLoader(__name__),
                              keep_trailing_newline=True)
@@ -48,4 +48,5 @@ def obi_new(**kwargs):
                 fil.write(template.render(kwargs))
         except jinja2.TemplateNotFound:
             print("Warning: Could not find template {0}".format(template_name))
+    os.chmod(project_path + '/baugen.sh', 0755)
     return 0
