@@ -100,8 +100,8 @@ rooms:
       'three-feld.protein'
     ]
 
-  my-room:
-    env-vars: {
+  # Settings for your secret moon base.  Run with "obi go moonbase"
+  moonbase:
       DISPLAY: ':0',
       OB_SHARE_PATH: 'share/{{project_name}}:$OB_SHARE_PATH'
     }
