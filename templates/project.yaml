@@ -101,7 +101,14 @@ rooms:
     ]
 
   # Settings for your secret moon base.  Run with "obi go moonbase"
+  # obi supports building and launching on remote environments including
+  # any number of machines. You specify those environments and their machines here.
+  # The following is a theoretical setup that would build and
+  # run across 3 machines, using the login 'my-user'. A pre-requisite to this
+  # would be to ensure you have ssh keys set up for the specified 'user' on
+  # each of the machines listed in 'hosts'.
   moonbase:
+    env-vars: {
       DISPLAY: ':0',
       OB_SHARE_PATH: 'share/{{project_name}}:$OB_SHARE_PATH'
     }
