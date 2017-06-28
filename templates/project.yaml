@@ -41,7 +41,7 @@ local-pre-stop-cmds: []
 # List of command-line invocations run on target hosts after stopping
 post-stop-cmds: []
 
-# Listof command-line invocations run on your machine after stopping
+# List of command-line invocations run on your machine after stopping
 local-post-stop-cmds: []
 
 # Rsync task
