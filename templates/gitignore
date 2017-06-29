@@ -4,3 +4,4 @@ bin
 *.map
 .DS_Store
 obj-*-linux-gnu
+bs-*.dat
