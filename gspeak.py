@@ -2,6 +2,7 @@
 Template for creating new gspeak apps.
 '''
 from __future__ import print_function
+from subprocess import call
 import errno
 import jinja2
 import os
@@ -52,4 +53,10 @@ def obi_new(**kwargs):
             print("Warning: Could not find template {0}".format(template_name))
     os.chmod(project_path + '/baugen.sh', 0755)
     os.chmod(project_path + '/debian/rules', 0755)
+    # git init
+    os.chdir(project_path)
+    call(["git", "init"])
+    call(["git", "add", "--all"])
+    call(["git", "commit", "-m", "initial commit from obi template gspeak"])
+    call(["git", "tag", "-am", "dev-0.1", "dev-0.1"])
     return 0
