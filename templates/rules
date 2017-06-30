@@ -13,12 +13,12 @@
 #   ob-set-defaults --g-speak 3.28 --prefix /opt/a-better-place
 # and if you want it to stick, set PREFIX in ci/ob-set-defaults.conf.
 # (Sorry for the duplication.  ob-set-defaults may change to make that option sticky later.)
-PREFIX=/opt/oblong/g-speak3.31
+PREFIX=/opt/oblong/g-speak{{g_speak_version}}
 
 # G_SPEAK_HOME is the directory where the g-speak SDK we link against is found.
 # To change the project to link against e.g. g-speak 3.28, do e.g.
 #   ob-set-defaults --g-speak 3.28
-G_SPEAK_HOME=/opt/oblong/g-speak3.31
+G_SPEAK_HOME=/opt/oblong/g-speak{{g_speak_version}}
 
 # YOBUILD is where updated system-y libraries for this version of g-speak live.
 # ob-set-defaults sets this based on the g-speak version.
