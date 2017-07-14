@@ -32,6 +32,7 @@ def obi_new(**kwargs):
         [os.path.join("src", "main.cpp"), "main.cpp"],
         [".gitignore", "gitignore"],
         ["project.yaml", "project.yaml"],
+        ["CHANGELOG.md", "CHANGELOG.md"],
         ["three-screen.protein", "three-screen.protein"],
         ["three-feld.protein", "three-feld.protein"],
         ["oblong.cmake", "oblong.cmake"],
