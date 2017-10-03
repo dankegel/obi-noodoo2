@@ -12,6 +12,7 @@ By default, just tells you what it would do.
 
 Options:
 -f       actually do it
+-u       get latest obs and bau even if they seem up to date
 _EOF_
 }
 
@@ -21,8 +22,8 @@ set -e
 # If this project needs a newer version of obs or bau, just update these
 # to match the output of --version from the latest versions of obs and bau.
 # (FIXME: should we just query the server for the latest every time?)
-OBS_VERSIONOID=64
-BAU_VERSIONOID=33
+OBS_VERSIONOID=91
+BAU_VERSIONOID=46
 
 is_ubuntu() {
     grep -i ubuntu /etc/issue > /dev/null 2>&1
@@ -37,6 +38,7 @@ is_win() {
 }
 
 doit() {
+    didit=true
     if "$dryrun"
     then
         echo "dry-run, so not doing: $*" >&2
@@ -44,7 +46,6 @@ doit() {
         echo "doing: $*" >&2
         "$@"
     fi
-    didit=true
 }
 
 apt_update() {
@@ -76,7 +77,8 @@ bs_install_repo_if_needed() {
         fi
     elif is_ubuntu
     then
-        if ! test -s /etc/apt/sources.list.d/oblong.list
+        # Be even more careful to not install oblong-repo if user already has it some other way
+        if ! test -s /etc/apt/sources.list.d/oblong.list && ! grep buildhost4 /etc/apt/sources.list.d/*.list > /dev/null
         then
             doit rm -f oblong-repo_1.7_all.deb
             doit wget http://buildhost4.oblong.com/oblong-repo/oblong-repo_1.7_all.deb
@@ -109,7 +111,7 @@ bs_install_obs() {
     elif is_ubuntu
     then
         apt_update
-        doit sudo apt-get install oblong-obs
+        doit sudo apt-get -y install oblong-obs
     else
         echo "baugen.sh: what os is this?"
         exit 1
@@ -141,7 +143,7 @@ bs_install_bau() {
         doit rm -rf ob-repobot-git
     else
         apt_update
-        doit sudo apt-get install oblong-bau
+        doit sudo apt-get install -y oblong-bau
     fi
     if ! "$dryrun" && ! bs_check_bau
     then
@@ -167,7 +169,7 @@ bs_install_spruce_if_needed() {
         return 0
     fi
 
-    if spruce --help > /dev/null
+    if spruce --help > /dev/null 2>&1
     then
         # Already have spruce
         return 0
@@ -176,10 +178,12 @@ bs_install_spruce_if_needed() {
     if is_mac
     then
         doit brew upgrade spruce || doit brew install spruce
-    elif is_linux
+        # Install clang-format if needed
+        doit spruce check /dev/null
+    elif is_ubuntu
     then
         apt_update
-        doit sudo apt-get install oblong-spruce
+        doit sudo apt-get install -y oblong-spruce
     elif is_win
     then
         echo "TODO: install spruce on windows here; ping platform team if you want it."
@@ -195,27 +199,29 @@ git_hooks="pre-commit"
 srcdir="$(cd "$(dirname "$0")" && pwd)"
 githook_dir=$srcdir/.git/hooks
 
-case $1 in
-"") dryrun=true ;;
--f) dryrun=false;;
--h|--help) usage; exit 0;;
-*) usage; exit 1;;
-esac
+dryrun=true
+forceupdate=false
+while test "$1" != ""
+do
+    case $1 in
+    -f) dryrun=false;;
+    -u) forceupdate=true;;
+    -h|--help) usage; exit 0;;
+    *) usage; exit 1;;
+    esac
+    shift
+done
 
-if ! bs_check_obs
+bs_install_repo_if_needed
+
+if $forceupdate || ! bs_check_obs
 then
     bs_install_obs
 fi
 
-if ! bs_check_bau
+if $forceupdate || ! bs_check_bau
 then
     bs_install_bau
-fi
-
-if ! test -d .git
-then
-    echo "bau prefers to build projects checked out from git.  Try 'obi clean; git init; git add -A; git commit; git tag -a -m dev-0.0 dev-0.0' first."
-    exit 1
 fi
 
 bs_install_hooks_if_needed
@@ -225,6 +231,12 @@ bs_install_spruce_if_needed
 if $dryrun && $didit
 then
     echo "Some action was required.  Re-run as '$0 -f' to actually do the above actions."
+    exit 1
+fi
+
+if ! git describe > /dev/null
+then
+    echo "bau prefers to build projects checked out from git, with at least one heavyweight tag like dev-0.0 or rel-0.0 (e.g. 'git tag -a -m dev-0.0 dev-0.0')"
     exit 1
 fi
 
