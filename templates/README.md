@@ -53,3 +53,28 @@ make -j8 -l8
 ```bash
 build/{{project_name}} [(<screen.protein> <feld.protein>)]
 ```
+
+### Change default g-speak version
+obi detects the g-speak version present at the time, and sets that
+as the project's default.  To switch g-speak or cef versions, you can
+change the default by running ob-set-defaults (included with the g-speak
+platform SDK).  For instance,
+```bash
+ob-set-defaults --g-speak 4.2
+```
+Try 'ob-set-defaults --help' for more info.
+
+### Build packages (mostly Oblong-specific)
+The tool bau, included with the g-speak platform SDK,
+is a bit like obi, but centers around building packages
+for production rather than creating and running projects.
+
+It can build linux and mac packages given the settings in ci/* and debian/*,
+and the default recipes in /usr/bin/bau-defaults.
+
+For instance,
+```bash
+bau all
+```
+It takes the same options as ob-set-defaults.  Try 'bau --help' and 'bau help' for more info.
+

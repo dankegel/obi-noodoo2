@@ -69,6 +69,17 @@ ELSE()
    SET(G_SPEAK_HOME "${G_SPEAK_HOME}" CACHE STRING "Choose where g-speak was installed" FORCE)
 ENDIF()
 
+# If someone modifies G_SPEAK_HOME in cache, invalidate FindGSpeak's cache so new value used
+# FIXME: are there any other cache variables that need clearing?
+IF(NOT(DEFINED(G_SPEAK_HOME_LAST)))
+     SET(G_SPEAK_HOME_LAST "NotAnOption" CACHE STRING "G_SPEAK_HOME last time we searched for libraries")
+     MARK_AS_ADVANCED (FORCE G_SPEAK_HOME_LAST)
+ENDIF()
+IF(NOT ("${G_SPEAK_HOME}" STREQUAL "${G_SPEAK_HOME_LAST}"))
+     UNSET(__pkg_config_checked_G_SPEAK CACHE)
+     SET(G_SPEAK_HOME_LAST ${G_SPEAK_HOME} CACHE STRING "Updating Library Project Configuration Option" FORCE)
+ENDIF()
+
 # If no install prefix set, default to G_SPEAK_HOME
 IF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
    SET(CMAKE_INSTALL_PREFIX ${G_SPEAK_HOME} CACHE PATH "Install prefix" FORCE)
@@ -108,8 +119,19 @@ if (NOT "${CEF_BRANCH}" STREQUAL "")
 endif()
 
 if (APPLE)
-    # FIXME: insulate ourselves from packages that use -pthread on osx
-    STRING(REPLACE "-pthread" "" G_SPEAK_CFLAGS "${G_SPEAK_CFLAGS}")
+    # FIXME: insulate ourselves from packages that use -pthread on osx; see bug 18328
+    if ("${G_SPEAK_CFLAGS}" MATCHES "-pthread")
+      # Alas, CMAKE_CXX_FLAGS is passed to linker when linking shared libraries
+      # See also discussion at http://savannah.gnu.org/patch/?8186
+      message(STATUS "Replacing -pthread in G_SPEAK_CFLAGS with -D_REENTRANT to avoid clang error when linking shared libraries")
+      foreach(foo G_SPEAK G_SPEAK_STATIC)
+        if (${foo}_CFLAGS MATCHES "-D_REENTRANT")
+          STRING(REPLACE "-pthread" "" ${foo}_CFLAGS "${${foo}_CFLAGS}")
+        else()
+          STRING(REPLACE "-pthread" "-D_REENTRANT" ${foo}_CFLAGS "${${foo}_CFLAGS}")
+        endif()
+      endforeach()
+  endif()
 endif()
 
 set(OPTIMIZE_FLAGS )

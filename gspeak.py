@@ -23,6 +23,8 @@ def obi_new(**kwargs):
     obi new gspeak project_name --gspeak=g_speak_home
     '''
     pairs = list([
+        [os.path.join("ci", "ob-set-defaults.conf"), "ob-set-defaults.conf"],
+        [os.path.join("ci", "do-install-deps.osx"), "do-install-deps.osx"],
         [os.path.join("debian", "changelog"), "changelog"],
         [os.path.join("debian", "compat"), "compat"],
         [os.path.join("debian", "control"), "control"],

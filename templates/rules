@@ -29,8 +29,31 @@ CMAKE_GENERATOR=Ninja
 EXTRA_CMAKE_OPTIONS=
 
 # dh_strip needs a little help to know how to name the debug symbol package.
+# Dima's nifty debug package thingy
+# find all the ...-dbg packages, and use dh_strip to separate out their debug symbols into the debug package.
+# Two passes. First does all the -dbg, second does everything else
+STRIP_INTO_DBG = perl -e '    \
+  $$/ = undef;                \
+  @p = <> =~ /^Package:\s*(\S+)/mg;  \
+  $$h{$$_} = 1 for(@p);       \
+  for ( @p )                  \
+  {                           \
+    if( /(.*)-dbg/ )          \
+    {                         \
+      system( "dh_strip -p $$1 --dbg-package=$$_" ); \
+      delete $$h{$$1};        \
+      delete $$h{$$_};        \
+    }                         \
+  }                           \
+  for ( @p )                  \
+  {                           \
+    if( $$h{$$_} )            \
+    {                         \
+      system( "dh_strip -p $$_" ); \
+    }                         \
+  }'
 override_dh_strip:
-	dh_strip -poblong-{{project_name}}-gs{{g_speak_version}}x1 --dbg-package=oblong-{{project_name}}-gs{{g_speak_version}}x1-dbg
+	$(STRIP_INTO_DBG) debian/control
 
 # Enable lines like the following if this package installs services
 ## This package installs a service named 'oblong-{{project_name}}'
