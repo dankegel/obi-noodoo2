@@ -63,7 +63,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OPTIMIZE_FLAGS} ${ERROR_CXXFLAGS} ${SA
 # Set project_CFLAGS and project_LDFLAGS to the flags needed by the
 # libraries we need... any pkg-config library can be named here.
 ObFindLibs(project ${OB_PREFER_LIB_TYPE}
-   libNoodoo
+   libNoodoo2
 )
 
 SET (project_source_files
