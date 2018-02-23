@@ -1,6 +1,6 @@
 # /* (c) oblong industries */
 
-cmake_minimum_required (VERSION 3.5.1)
+cmake_minimum_required (VERSION 3.6.2)
 
 project({{project_name}} CXX)
 
@@ -9,30 +9,17 @@ set(CMAKE_CXX_STANDARD 11)
 set(CXX_STANDARD_REQUIRED YES)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-#---------- Dependencies and options settable from cmake commandline with -Dfoo=bar ---------
-
-# oblong.cmake handles a lot of boilerplate tasks, so many that a picture helps:
-# It looks up the cflags needed to compile against the libraries you list in PLATFORM_LIBS:
-#  PLATFORM_LIBS        -> ${G_SPEAK_CFLAGS} / ${G_SPEAK_LDFLAGS}
-# It checks commandline options and sets variables you should append to CMAKE_CXX_FLAGS, e.g.
-#  -DASAN=on, -DTSAN=on -> ${SANITIZER_FLAGS}
-#  -DCOVERAGE=on        -> ${COVERAGE_FLAGS}
-#  -DDEBUG=on           -> ${OPTIMIZE_FLAGS}
-# It sets variables you should check, e.g. 'if (BUILD_TESTS)'
-#  -DBUILD_TESTS        -> ${BUILD_TESTS}
-# It sets a few filesystem paths, based on -DG_SPEAK_HOME or the contents of debian/rules:
-#  ${G_SPEAK_HOME}, ${G_SPEAK_YOBUILD_HOME}
-# It defines functions you should call when building or installing apps that use webthing:
-#  cef_bless_app(), cef_install_blessed_app()
-# It defines a function to help use compiler warning flags (see below):
-#  oblong_append_supported_cxx_flags()
-# Note: oblong.cmake may move to /opt/oblong/g-speakX.Y/lib/cmake/ eventually.
-
-# Got that?  OK, let's set PLATFORM_LIBS to the libraries we need, and call oblong.cmake.
-# (Note: oblong.cmake uses pkg-config, which knows about dependencies, so you can often leave out e.g. libLoam.)
-# Actually, any pkgconfig library from g-speak, yobuild, or the system may be listed here.
-SET(PLATFORM_LIBS libNoodoo)
-include(oblong.cmake)
+# Get access to g-speak as well as its cmake options, helper functions,
+# and variables.  (See $G_SPEAK_HOME/src/FindOblong.cmake for what this does.)
+# 
+# MAC OS NOTE:
+# If cmake aborts on the next line with the cmake error
+#   By not providing "FindOblong.cmake" in CMAKE_MODULE_PATH...
+# that means $G_SPEAK_HOME/bin is not on your PATH and/or
+# 'obs get-gspeak-home' couldn't find it (by e.g. looking in debian/rules).
+# Normally, oblong's mac platform installer takes care of this for you
+# by adding an entry to /etc/paths.d.
+FIND_PACKAGE(Oblong)
 
 #---------- Compiler flags ----------------------------------------------------
 
@@ -45,9 +32,6 @@ if (WIN32)
       /W3
       #---- OK, but not the annoying ones ------
       /wd4996   # Ignore warnings about POSIX function names being deprecated.  Last I heard, POSIX didn't deprecate them.
-      #---- In case of emergency, break glass ------
-      # FIXME: fix underlying problem, then remove these suppressions
-      /wd4251   # 'identifier' : class 'type' needs to have dll-interface to be used by clients of class 'type2'
     )
 else()
     set(ERROR_CXXFLAGS "-Werror")
@@ -63,16 +47,24 @@ else()
       -Wvla
       -Wwrite-strings
       -fdiagnostics-show-option
+      #---- OK, but not the annoying ones ------
+      #-Wno-error=overloaded-virtual
       )
 endif ()
 
 # Turn the wish list FLAGS into the supported subset ERROR_CXXFLAGS
-oblong_append_supported_cxx_flags(ERROR_CXXFLAGS ${FLAGS})
+ObCheckCXXFlags(ERROR_CXXFLAGS ${FLAGS})
 
 # Put it all together
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${G_SPEAK_CFLAGS} ${OPTIMIZE_FLAGS} ${ERROR_CXXFLAGS} ${SANITIZER_FLAGS} ${COVERAGE_FLAGS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OPTIMIZE_FLAGS} ${ERROR_CXXFLAGS} ${SANITIZER_FLAGS} ${COVERAGE_FLAGS}")
 
 #------------- Finally, the project per se ----------------------------------
+
+# Set project_CFLAGS and project_LDFLAGS to the flags needed by the
+# libraries we need... any pkg-config library can be named here.
+ObFindLibs(project ${OB_PREFER_LIB_TYPE}
+   libNoodoo
+)
 
 SET (project_source_files
   src/main.cpp
@@ -81,17 +73,22 @@ include_directories("include" "src")
 
 # Finally, build the app!
 add_executable({{project_name}} ${project_source_files})
-target_link_libraries({{project_name}} ${G_SPEAK_LDFLAGS})
+target_link_libraries({{project_name}} ${project_LDFLAGS})
+set_target_properties({{project_name}} PROPERTIES
+   COMPILE_FLAGS "${project_CFLAGS}"
+)
 
 # And, if user does 'make install', install it.
-INSTALL(TARGETS {{project_name}}
-        RUNTIME DESTINATION "bin"
-       )
+INSTALL(
+   TARGETS {{project_name}}
+   RUNTIME DESTINATION "bin"
+)
 
 #------------- Tell user what happened ----------------------------------------
 
 MESSAGE("--------- -D Options from commandline -----------------------")
 MESSAGE("ASAN:                   ${ASAN}; see https://github.com/google/sanitizers/wiki/AddressSanitizer")
+MESSAGE("TSAN:                   ${TSAN}; see https://github.com/google/sanitizers/wiki/ThreadSanitizer")
 MESSAGE("BUILD_TESTS:            ${BUILD_TESTS}")
 MESSAGE("CMAKE_BUILD_TYPE:       ${CMAKE_BUILD_TYPE} (choices are Debug, Release, or RelWithDebInfo)")
 MESSAGE("CMAKE_VERBOSE_MAKEFILE: ${CMAKE_VERBOSE_MAKEFILE}")
