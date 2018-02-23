@@ -39,7 +39,6 @@ def obi_new(**kwargs):
         ["three-screen.protein", "three-screen.protein"],
         ["three-feld.protein", "three-feld.protein"],
         ["oblong.cmake", "oblong.cmake"],
-        ["baugen.sh", "baugen.sh"],
         ["CMakeLists.txt", "CMakeLists.txt"]])
     env = jinja2.Environment(loader=jinja2.PackageLoader(__name__),
                              keep_trailing_newline=True)
@@ -55,7 +54,6 @@ def obi_new(**kwargs):
                 fil.write(template.render(kwargs))
         except jinja2.TemplateNotFound:
             print("Warning: Could not find template {0}".format(template_name))
-    os.chmod(project_path + '/baugen.sh', 0755)
     os.chmod(project_path + '/debian/rules', 0755)
     # git init
     os.chdir(project_path)
